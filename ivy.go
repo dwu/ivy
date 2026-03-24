@@ -145,7 +145,16 @@ func main() {
 		return
 	}
 
-	scanner := scan.New(state.New(context), "<stdin>", bufio.NewReader(os.Stdin))
+	var scanner *scan.Scanner
+	if rl, err := NewReadlineReader(&conf); err != nil {
+		fmt.Fprintf(os.Stderr, "ivy: readline initialization failed, falling back to stdin: %v\n", err)
+		scanner = scan.New(state.New(context), "<stdin>", bufio.NewReader(os.Stdin))
+	} else if rl != nil {
+		defer rl.Close()
+		scanner = scan.New(state.New(context), "<stdin>", bufio.NewReader(rl))
+	} else {
+		scanner = scan.New(state.New(context), "<stdin>", bufio.NewReader(os.Stdin))
+	}
 	parser := parse.NewParser("<stdin>", scanner, context)
 	for !run.Run(parser, context, true) {
 	}
