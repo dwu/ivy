@@ -108,3 +108,135 @@ abc/123 234
 # Hexadecimal floating point
 0x1.0 0x1.0p3 0x1.0p-2 0x1_2.p2 0x1p1
 	1 8 1/4 72 2
+
+# Other bases while reading floating-point number format.
+# The base must be 0 or 10 (easy; 0 the default) or 2, 8, or 16.
+
+# First 100 bits of the prime constant (base 2, 1 bit at each prime).
+)ibase 2
+)format .12g
+0.0110101000101000101000100000101000001000101000100000100000101000001000101000001000100000100000001000
+	0.414682509851
+
+)ibase 2
+0.1
+	1/2
+
+)ibase 8
+0.4
+	1/2
+
+)ibase 16
+0.8
+	1/2
+
+# Now floats
+
+)base 16
+float 0
+	+0.000000000000p+00
+
+)ibase 2
+float 0.1
+float .1p1
+float .1e1
+	0.5
+	1
+	5
+
+)ibase 8
+float 0.4
+float .4p1
+float .4e1
+	0.5
+	1
+	5
+
+)ibase 16
+float 0.8
+float .8p1
+# Can't do .8e1: e not allowed in hex as exponent marker.
+	0.5
+	1
+
+)base 2
+float 0.1
+0.1p0
+1p-1
+	+0.100000000000p+00
+	1/10
+	1/10
+
+)base 8
+float 0.4
+0.1p2
+0.2p1
+0.4p0
+1p-1
+	+0.400000000000p+00
+	1/2
+	1/2
+	1/2
+	1/2
+
+)base 16
+float 0.8
+0.1p3
+0.2p2
+0.4p1
+0.8p0
+1p-1
+	+0.800000000000p+00
+	1/2
+	1/2
+	1/2
+	1/2
+	1/2
+
+)obase 2
+float 1/3
+float -1/3
+sqrt 2
+	+0.101010101010p-01
+	-0.101010101010p-01
+	+0.101101010000p+01
+
+)obase 2
+float 1/3
+float -1/3
+sqrt 2
+)ibase 2
+)obase 10
+# The output of sqrt 2 in base 8. (Should be 1.41421356237 decimal but we have fewer bits.)
+float +0.101101010000p+01
+	+0.101010101010p-01
+	-0.101010101010p-01
+	+0.101101010000p+01
+	1.4140625
+
+
+)obase 8
+float 1/3
+float -1/3
+sqrt 2
+)ibase 8
+)obase 10
+# The output of sqrt 2 in base 8. (Should be 1.41421356237 decimal but we have fewer bits.)
+float +0.552023631477p+01
+	+0.525252525252p-01
+	-0.525252525252p-01
+	+0.552023631477p+01
+	1.41421356236
+
+)obase 16
+float 1/3
+float -1/3
+sqrt 2
+)ibase 16
+)obase 10
+# The output of sqrt 2 in base 16.
+float +0.b504f333f9dep+01
+	+0.aaaaaaaaaaaap-01
+	-0.aaaaaaaaaaaap-01
+	+0.b504f333f9dep+01
+	1.41421356237

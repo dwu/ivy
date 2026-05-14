@@ -52,6 +52,11 @@
 123456e100 -123456e100 ((sqrt 2) j (sqrt 3))
 	1e+105 -1e+105 1e+00j2e+00
 
+# Shorthands: no need for quotes or, for simple things, percents.
+)format .2f
+23
+	23.00
+
 # Rationals with %e.
 
 )format "%.1e"

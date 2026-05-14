@@ -138,8 +138,14 @@ func (c *Config) RatFormat() string {
 
 // SetFormat sets the formatting string. Rational formatting
 // is just this format applied twice with a / in between.
+// If s is empty, the effect is to set the default format for each type.
+// Otherwise, if s does not contain a percent character, one is
+// injected at the beginning.
 func (c *Config) SetFormat(s string) {
 	c.init()
+	if s != "" && !strings.Contains(s, "%") {
+		s = "%" + s
+	}
 	c.formatVerb = 0
 	c.formatPrec = 0
 	c.formatFloat = false

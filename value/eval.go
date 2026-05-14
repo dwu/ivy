@@ -278,9 +278,17 @@ func innerProduct(c Context, u Value, left, right string, v Value) Value {
 				c.Errorf("inner product: mismatched shapes %s and %s", NewIntVector(u.shape...), NewIntVector(v.shape...))
 			}
 		}
+		rank := len(u.shape) + len(v.shape) - 2
+		shape := make([]int, rank)
+		copy(shape, u.shape[:len(u.shape)-1])
+		copy(shape[len(u.shape)-1:], v.shape[1:])
+		data := newVectorEditor(size(c, shape), zero)
 		n := v.shape[0]
+		if n == 0 {
+			// Inputs are degenerate, but output is defined: all zeroes.
+			return NewMatrix(c, shape, data.Publish()).shrink()
+		}
 		vstride := v.data.Len() / n
-		data := newVectorEditor(u.data.Len()/n*vstride, nil)
 		pfor(safeBinary(left) && safeBinary(right), 1, data.Len(), func(lo, hi int) {
 			for x := lo; x < hi; x++ {
 				i := x / vstride * n
@@ -292,10 +300,6 @@ func innerProduct(c Context, u Value, left, right string, v Value) Value {
 				data.Set(x, acc)
 			}
 		})
-		rank := len(u.shape) + len(v.shape) - 2
-		shape := make([]int, rank)
-		copy(shape, u.shape[:len(u.shape)-1])
-		copy(shape[len(u.shape)-1:], v.shape[1:])
 		return NewMatrix(c, shape, data.Publish()).shrink()
 	}
 	c.Errorf("can't do inner product on %s", whichType(c, u))

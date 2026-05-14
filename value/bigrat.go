@@ -5,9 +5,9 @@
 package value
 
 import (
-	"errors"
 	"fmt"
 	"math/big"
+	"strconv"
 	"strings"
 )
 
@@ -17,17 +17,89 @@ type BigRat struct {
 
 // The input is known to be in floating-point syntax.
 // If there's a slash, the parsing is done in Parse().
+// Bases allowed: 0, 2, 8, 10, or 16.
 func setBigRatFromFloatString(c Context, s string) (br BigRat, err error) {
 	// Be safe: Verify that it is floating-point, because otherwise
-	// we need to honor ibase.
+	// we need to honor arbitrary ibase.
 	if !strings.ContainsAny(s, ".eEpP") {
 		// Most likely a number like "08".
-		c.Errorf("bad number syntax: %s", s)
+		return BigRat{}, fmt.Errorf("bad number syntax: %q", s)
 	}
-	var ok bool
+	base := 0
+	if c != nil { // Happens during const.go initialization, fixing would create import cycle.
+		base = c.Config().InputBase()
+	}
+	if base != 0 && base != 10 {
+		return setBigRatFromFloatBase(c, s, base)
+	}
 	r, ok := big.NewRat(0, 1).SetString(s)
 	if !ok {
-		return BigRat{}, errors.New("floating-point number syntax")
+		return BigRat{}, fmt.Errorf("floating-point number syntax: %q", s)
+	}
+	return BigRat{r}, nil
+}
+
+// setRatFromFloatBase parses the string in the given base.
+// The exponent is a power of 2 or of 10, decided by the
+// exponent character: E means 10, P means 2.
+// For example, in input base 2, 1p1==2, while 1e1==10.
+// This is more general than Go's math/big package's formats.
+func setBigRatFromFloatBase(c Context, s string, base int) (br BigRat, err error) {
+	prefix := ""
+	switch s[0] {
+	case '-':
+		prefix = s[:1]
+		fallthrough
+	case '+':
+		s = s[1:]
+	}
+	// math/big.Rat uses a prefix to set bases. We need to add that.
+	switch base {
+	case 2:
+		prefix += "0b"
+	case 8:
+		prefix += "0o"
+	case 16:
+		prefix += "0x"
+	default:
+		return BigRat{}, fmt.Errorf("cannot input floating-point number in base %d", base)
+	}
+	// Separate the number from the exponent and decide whether
+	// the exponent is a power of 10 ("1e1") or a power of 2 ("1p1").
+	mantStr := s
+	expBase := int64(10)
+	expStr := ""
+	// E not allowed for exponent in base 16.
+	eLoc := strings.LastIndexAny(s, "pP")
+	if eLoc < 0 && base != 16 {
+		eLoc = strings.LastIndexAny(s, "eE")
+	}
+	if eLoc >= 0 {
+		mantStr = s[:eLoc]
+		expStr = s[eLoc+1:]
+		if s[eLoc]&^0x20 == 'P' {
+			expBase = 2
+		}
+	}
+	// Parse the mantissa and the exponent separately.
+	r, ok := big.NewRat(0, 1).SetString(prefix + mantStr)
+	exp := int64(0)
+	if expStr != "" {
+		exp, err = strconv.ParseInt(expStr, 10, 64) // Always in base 10.
+	}
+	if !ok || err != nil {
+		return BigRat{}, fmt.Errorf("floating-point number syntax: %q", s)
+	}
+	// Now combine them.
+	absExp := exp
+	if exp < 0 {
+		absExp = -exp
+	}
+	scale := big.NewRat(1, 1).SetInt(bigIntPower(c, big.NewInt(expBase), absExp))
+	if exp > 0 {
+		r.Mul(r, scale)
+	} else if exp < 0 {
+		r.Quo(r, scale)
 	}
 	return BigRat{r}, nil
 }

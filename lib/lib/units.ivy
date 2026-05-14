@@ -279,6 +279,12 @@ lightyear = c mul year
 au = _quote 1.4959787066e11 "m"
 parsec = 206264.806 "" mul au
 
+# Planck units
+plancklength = 1.616255e-35 "m"
+planckmass =2.176434e-8 "kg"
+plancktime =5.391247e-44 "s"
+plancktemp = 1.416784e32 "K"
+
 # Planets - TODO make this a table?
 
 # Planets

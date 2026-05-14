@@ -37,7 +37,7 @@ by 3. This can affect precedence: 3/6*4 is 2 while 3 / 6*4 is 1/8
 since the spacing turns the / into a division operator. Use parentheses
 or spaces to disambiguate: 3/(6*4) or 3 /6*4.
 
-Ivy has complex numbers, which are constructed using the unary or
+Ivy has complex numbers, which are constructed using the
 binary j operator. As with rationals, the token 1j2 (the representation
 of 1+2i) is a single token. The individual parts can be rational,
 so 1/2j-3/2 is the complex number 0.5-1.5i and scans as a single
@@ -439,10 +439,14 @@ input.
 	) base 0
 		Set the number base for input and output. The commands ibase and
 		obase control setting of the base for input and output alone,
-		respectively.  Base 0 allows C-style input: decimal, with 037 being
+		respectively. Base 0 allows C-style input: decimal, with 037 being
 		octal, 0b10 being binary and 0x10 being hexadecimal. Bases above
-		16 are disallowed. To output large integers and rationals, base
-		must be one of 0 2 8 10 16. Floats are always printed base 10.
+		16 are disallowed. To output floats, rationals, and large integers,
+		base must be one of 0 2 8 10 16. In base 2, 8, or 16, floats are
+		represented in exponential format with the mantissa in the range
+		[½, 1) (or zero) in the specified base and the exponent a power
+		of two, in decimal and introduced by a 'p' or 'P' character.
+		Other float formats are not supported outside base 0 or 10.
 	) clear name ...
 		Remove the definition of the named user-defined items, or all
 		such items if no name is provided. The scope may be limited to
